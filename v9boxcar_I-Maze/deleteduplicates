@@ -1,0 +1,39 @@
+#!/bin/bash
+
+npat_space=$(printf "%02d " $(echo {10..60..2}))
+seed_space=$(printf "%03d " $(echo {1..50}))
+
+bx=4
+
+count_exceptions=0;
+
+for rulename in Uni Bid; do
+  for npat in $npat_space; do
+    for seed in $seed_space; do
+    
+      foldername=Results${rulename};
+      simid=${rulename}_bx${bx}np${npat}sd${seed}
+      fnames=$(find $foldername -name "${simid}*")
+      fcount=($(echo $fnames | wc -w))
+      count_exceptions=$[$count_exceptions+1]
+      
+      if [ $fcount == 0 ]; then
+        echo "unexecuted trial: " $simid
+      elif [ $fcount -gt 1 ]; then
+        echo $fcount "duplicate trials: " 
+        oldest_ver=$(echo $(ls -1t ${foldername}/${simid}* | tail -n -1))
+        echo DELETING $oldest_ver
+        rm $oldest_ver
+      else
+        count_exceptions=$[$count_exceptions-1];
+      fi
+      
+            
+    done
+  done
+done
+
+if [ $count_exceptions == 0 ]; then echo 'no exceptions detected'; fi
+
+
+

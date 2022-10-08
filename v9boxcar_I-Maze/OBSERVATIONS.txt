@@ -1,0 +1,36 @@
+Originally, the DetermineTrialSuccess program 
+did not account for the fact that, due to the 
+boxcar implementation and the refractory period, 
+there might be long gaps in the pattern recall of the network.
+This was the case in the unidirectional rule, where, for example,
+pattern x would be recognised at timestep t, then 
+no external input neurons would fire at all for 2 timesteps, 
+then pattern x+1 would be recognised at timestep t+3. In other words,
+the unidirectional rule under the boxcar tends to skip more, 
+with less density in the number of neurons firing per pattern.
+
+What is weird is that, despite this problem happening with boxcar 4 uni, 
+it did not become an issue with the bidirectional case.
+
+This might be because I lowered the activity for the unidirectional 
+rule from 0.1 / 4 boxcars to 0.08 / 4 boxcars.
+
+
+FIRST FAILURE MODE DETECTOR IMPLEMENTATION:
+rng(1)
+noisy till trial 25
+
+trial 64: 
+%   external activity died but context nrn attractor developed
+trial 81,86,87,91-97, 105, 107, 111-112, 126, 129, 131, 134, 138, 141, 143, 144, 148, 150: 
+%   attractor developed at externals but not recognised due to skips
+
+
+
+
+NEURON NUMBERS
+It seems the learning peak for bidirectional is pretty much the same as the number of neurons is increased
+if we consider the graphs plotting trials with at least one success against
+number of patterns, the plots have the following modes:
+1000 nrns: 34
+2000 nrns: 32

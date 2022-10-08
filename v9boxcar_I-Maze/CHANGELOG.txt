@@ -1,0 +1,126 @@
+Jin Hanbyul Lee
+%%%%
+RefractoryPeriod_v4 
+July 12 2019
+-refractory period now implemented by subtracting the inhibition evenly 
+from the number of boxcars specified by parameters.refractory_period
+(ref RunModel/UpdateSpike)
+
+-There was a problem in all previous versions of the code where the 
+modification equation for k0 was dk_0=e_k_0*(desired_mean_z - trial_mean_z);
+when it should have been the other way around as dk_0=e_k_0*(trial_mean_z - desired_mean_z);
+
+-the k_ff modification was also flawed in RunModel/UpdateKff as what I believed to be
+vars.mean_z turned out to be a zero vector. To match mean z activity in both 
+testing and training trials, the testing mean z was derived instead from data.z_test
+(which might be an unnecessarily large array) and an argument was added to UpdateKff
+to include the data struct.
+
+
+Instead of using PushBoxcar(the process of applying a Jordan0 matrix to the
+boxcar matrix took way too much time), 
+created a new function called BoxcarStep, which overwrites the boxcar matrix
+depending on the timestep. For example, if we have boxcar 3, instead of pushing
+all the columns leftward and overwriting column 1, we overwrite the column
+corresponding to timestep modulo 3 (although not technically modulo
+since we map multiples of 3 to 3, not 0, courtesy of Matlab's nonzero indexing)
+
+corresponding adjustements had to be made to the refractory period implementation
+
+
+Added Result Classifier. Failure modes categorised into:
+{'noise','activity died out','context attractor','attractor','premature end of sequence'}
+Refer to Helpers/DetermineTrailSuccess.m and Helpers/FailureModeDictionary.
+parameter field 'toggle_display_failure_mode' added.
+
+
+
+Aug 1 2019
+for boxcar 4, k0 was not working very well; allowed k0 to very even after 
+prefabricating k0 values beforehand.
+Added a number of scripts that allow comparisons of the 
+actual weights to the calculated correlations. 
+Refer to 'CompareCalculatedAndActualWeights.m'
+
+Main_backup now saves the weights at the end of every trial
+
+
+
+Dec 31 2019
+To Do:
+Add program that can run the whole experiment, for nrns [1000,2000] and boxcar [1,2,4]
+
+Remove 'preset K' stuff. It wont change anything if k_0 is allowed to vary between trials
+
+------------
+Katie Winn
+September 20, 2020
+Addition of Trace Conditioning Sequence
+
+New Files:
+- genTrace.m builds a trace conditioning training sequence
+- DetermineTrialSuccessTrace.m (currently working on this) 
+
+Edits to Previous Files:
+- genNoise.m has new conditional statement to account for if on noise is restricted to trace interval
+- InitialiseParameters.m (in function AdjustParameters) has conditional statement to check to see if user selects trace conditioning sequence
+- InitialiseParameters.m has settings set to begin trace conditioning
+- InitialiseCoreVars.m has new conditional statement to check if user selects trace conditioning sequence
+- RescaleParameters.m has new conditional statement to check if user selects trace conditioning sequence
+- InitialiseData.m: fixed issue regarding y_train data type (it is not 'logical' type)
+
+------------
+Katie Winn
+Building a Trace Success Detector
+Make separate file for genNoiseTrace
+
+- DetermineTrialSuccessTrace.m is called by RunModel.m 
+- Probably will need a helper function to quantify success/failure
+- Successful prediction defined by total neurons and distinct neurons
+
+Edits to Previous Files:
+- RunModel.m see lines 65-82. Calls new success detector for when toggle_trace is true. 
+
+genNoiseTrace when toggle_trace=true
+- noise generation is called in two places in RunModel
+- use genNoiseTrace for training and testing
+
+Criteria for success:
+1. total neurons in window
+2. distinct neurons in window
+
+Critera for failure
+1. prediction too soon
+2. prediction too late
+3. failure to predict 
+
+------------
+Katie Winn
+October 20, 2020
+
+Success Detector
+for program to detect success for TRACE, set toggle_record_success = true in InitialiseParameters.m
+- success: determined by distinct neurons and total neurons to avoid false successes during early trials
+- predict too soon: also determined by distinct and total
+- predict too late? 
+
+Noise
+- need to implement all types of noise
+- figure out testing noise
+
+Viewing:
+- [MainSingleTask line 122] looking at only 80 neurons
+- [ScrollThroughData lines 159 & 163] looking at only CS and US neurons
+
+------------
+Katie Winn
+October 23, 2020
+
+Success Detector
+- halts the program after hitting 'x' number of consecutive successes (defined by user in InitialiseParameters.m)
+  For now, I have this number set to 5 (ie. 5 consec succcesses --> halt)
+- displaying if failure or success on the spy diagram:
+    - works for running ScrollThroughData
+    - need to do for MainSingleTask
+
+
