@@ -8,9 +8,12 @@ function [parameters,variables] = RescaleParameters(parameters,variables,timesca
     %SCALE trial length and adjust dependent variables accordingly
     if parameters.toggle_trace == true  % trace sequence
         parameters.length_of_each_trial = parameters.length_of_each_trial * timescale;
+    elseif parameters.toggle_I_Maze == true
+        parameters.length_of_each_trial = parameters.length_of_each_trial * timescale;
     else
         parameters.length_of_each_trial = parameters.extra_timesteps_train ... % default simple sequence
             + timescale*parameters.n_patterns*parameters.stutter;
+        
     end 
     
     variables.mean_z_history_during_trial ...
@@ -25,8 +28,15 @@ function [parameters,variables] = RescaleParameters(parameters,variables,timesca
     %interlace matrices of zeros with the input_prototypes s.t.
     %each prototype vector is followed by timescale-1 i.e. boxcarlength-1
     %0 vectors
-    variables.input_prototypes...
+    if parameters.toggle_I_Maze == true
+        variables.input_prototypesL...
+            = RepCols(variables.input_prototypesL,timescale);
+        variables.input_prototypesR...
+            = RepCols(variables.input_prototypesR,timescale);
+    else
+        variables.input_prototypes...
         = RepCols(variables.input_prototypes,timescale);
+    end
     %note that this results in the scaling of the so-called stutter length
     parameters.stutter = parameters.stutter*timescale;
 
