@@ -216,7 +216,7 @@ parameters = struct(...
     'ext_activation',               uint16(30),... %default 30
     'stutter',                      uint16(5),...x
     'shift',                        uint16(30),... %default 15, must be less than 30 (?)
-    'paradigm',                     [15 10 5], ...
+    'paradigm',                     [1], ...
     'num_start_block',              uint16(4),...
     'num_shared_block',             uint16(2),...
     'num_end_block',                uint16(4),...
@@ -270,8 +270,10 @@ function parameters = AdjustParameters(parameters)
     end
     
     if parameters.toggle_I_Maze == true
+        
         parameters.n_patterns = sum(parameters.num_start_block + parameters.num_shared_block + parameters.num_end_block);
         parameters.length_of_each_trial = parameters.stutter*parameters.n_patterns;
+        parameters.number_of_trials = 4*sum(parameters.paradigm);
         %disp("IP length_of_each_trial")
         %disp(parameters.length_of_each_trial)
         

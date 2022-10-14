@@ -1,6 +1,5 @@
 
 function vars = InitialiseCoreVars(params)
-    
     %generate input prototypes (trace sequence,I_Maze or simple sequence);
     %all inputs in the simulation will be noisy versions of the following prototype:
     if params.toggle_trace == true 
@@ -10,9 +9,11 @@ function vars = InitialiseCoreVars(params)
         % input_pattern is not the same as input_protoype. Due to the
         % special nature of I-Maze, each trial's input prototype will have
         % to be determined separately.
-        vars.input_pattern = genIMazePattern(params.paradigm);    % I-Maze pattern
-        vars.input_prototypesL = genIMaze(params, 1);
-        vars.input_prototypesR = genIMaze(params, 2);
+        [vars.input_pattern, vars.input_attractor] = genIMazePattern(params.paradigm);    % I-Maze pattern
+        vars.input_prototypesL1 = genIMaze(params, 1, 1);
+        vars.input_prototypesR1 = genIMaze(params, 2, 1);
+        vars.input_prototypesL2 = genIMaze(params, 1, 2);
+        vars.input_prototypesR2 = genIMaze(params, 2, 2);
         %disp("size after genIMaze")
         %disp(size(vars.input_prototypesR))
     else    

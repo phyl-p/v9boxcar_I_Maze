@@ -22,7 +22,7 @@ function [vars,data] = RunModel(param,vars,data)
     
     rng(seed)
 
-    n_trials = param.number_of_trials;
+    n_trials = param.number_of_trials; %modify the multiplier 2 if only want to train on one attractor, have to also modify initilaiseCoreVar, genIMazePattern and rescaleparameters
     len_trial = param.length_of_each_trial;
     %disp("run model len trial")
     %disp(len_trial)
@@ -46,10 +46,14 @@ function [vars,data] = RunModel(param,vars,data)
         % initialize the input_prototype for this trial, as specified by
         % vars. input_pattern generated in InitialiseCoreVars.
         if param.toggle_I_Maze == true
-            if vars.input_pattern(1, trial_number) == 1
-                vars.input_prototypes = vars.input_prototypesL;
-            elseif vars.input_pattern(1, trial_number) == 2
-                vars.input_prototypes = vars.input_prototypesR;
+            if vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 1
+                vars.input_prototypes = vars.input_prototypesL1;
+            elseif vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 2
+                vars.input_prototypes = vars.input_prototypesL2;
+            elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 1
+                vars.input_prototypes = vars.input_prototypesR1;    
+            elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 2
+                vars.input_prototypes = vars.input_prototypesR2;   
             else
                 disp("ERROR: incorrect input pattern generated. Must be either 1 or 2. Check genIMazePatten.")
             end

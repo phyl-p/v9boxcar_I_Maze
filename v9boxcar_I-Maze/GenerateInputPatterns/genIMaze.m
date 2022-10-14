@@ -5,7 +5,7 @@
 
 % Noise: Noise (on and off) can be adjusted by the user in
 % InitialiseParameters.m (lines ??) for the training trace sequence.
-function input_sequence = genIMaze(pm, pattern)
+function input_sequence = genIMaze(pm, pattern, attractor)
 % GENIMAZE: this function creates a training sequence pattern starting with
 % two starting positions for the I-Maze, the left and right branch, turned
 % on for a specified duration of time (stutter), followed by a trace interval
@@ -73,7 +73,7 @@ function input_sequence = genIMaze(pm, pattern)
     toggle_produce_visualisation_of_input = pm.toggle_visualize_IMaze;
     toggle_save_input_sequence_to_file = pm.toggle_save_input_sequence_to_file;
     
-    input_sequence = genPrototypes(pattern, n_nrns, ext_activation, ...
+    input_sequence = genPrototypes(pattern, attractor, n_nrns, ext_activation, ...
         stutter, shift,num_start_block, num_shared_block, num_end_block);
     
     if extra_steps > 0
@@ -92,13 +92,13 @@ function input_sequence = genIMaze(pm, pattern)
     %-------------------------------
     % Save Sequence
     %-------------------------------
-    pattern_name = "Pattern" + num2str(pattern) + ".mat";
+    pattern_name = "Pattern" + num2str(pattern) + num2str(attractor) + ".mat";
     if toggle_save_input_sequence_to_file == true
         save(pattern_name,'input_sequence')
     end
 end
 
-function prototypes = genPrototypes(pattern, n_nrns, ext_activation, stutter,...
+function prototypes = genPrototypes(pattern, attractor, n_nrns, ext_activation, stutter,...
                                     shift,num_start_block, num_shared_block, num_end_block)
 %GENPROTOTYPES: This function does the main implementation of the trace
 %conditioning sequence. It is called by genIMaze.  
@@ -127,12 +127,18 @@ function prototypes = genPrototypes(pattern, n_nrns, ext_activation, stutter,...
     
     if pattern == 1
         nrn_padding_start = 0;
-        nrn_padding_end = num_start_block*2 + num_shared_block;
-    elseif pattern == 2
+        
+    else
         nrn_padding_start = num_start_block;
-        nrn_padding_end = num_start_block*2 + num_shared_block + num_end_block;
+        
     end
     
+    if attractor == 1
+            nrn_padding_end = num_start_block*2 + num_shared_block;
+    else
+        nrn_padding_end = num_start_block*2 + num_shared_block + num_end_block;
+    end
+            
     nrn_padding_shared = num_start_block*2;
     
     timestp_padding_start = 0;
@@ -142,24 +148,27 @@ function prototypes = genPrototypes(pattern, n_nrns, ext_activation, stutter,...
     %disp(pattern)
     % build start sequence
     %disp("build start")
-    prototype = buildPrototypes(prototype, block_unit, num_start_block, ...
+    add_attractor = 0;
+    prototype = buildPrototypes(prototype, add_attractor, block_unit, num_start_block, ...
                                 nrn_padding_start, timestp_padding_start,...
                                 shift, stutter, ext_activation);
     
     % insert shared sequence
     %disp("build shared")
-    prototype = buildPrototypes(prototype, block_unit, num_shared_block, ...
+    add_attractor = 0;
+    prototype = buildPrototypes(prototype, add_attractor, block_unit, num_shared_block, ...
                                 nrn_padding_shared, timestp_padding_shared,...
                                 shift, stutter, ext_activation);
     
     % insert end sequence
     %disp("build end")
-    prototypes = buildPrototypes(prototype, block_unit, num_end_block, ...
+    add_attractor = 1;
+    prototypes = buildPrototypes(prototype, add_attractor, block_unit, num_end_block, ...
                                 nrn_padding_end, timestp_padding_end,...
                                 shift, stutter, ext_activation);
 end
 
-function prototype = buildPrototypes(prototype, block_unit, num_of_blocks, ...
+function prototype = buildPrototypes(prototype, add_attractor, block_unit, num_of_blocks, ...
                                 padding, time_padding, shift, stutter, ext_activation)
     %disp(" in buildPrototypes")
     
@@ -185,5 +194,8 @@ function prototype = buildPrototypes(prototype, block_unit, num_of_blocks, ...
 %         disp(stop)
 %         disp("------")
         prototype(initial_nrn:final_nrn, start:stop) = block_unit;   
-     end
+        if add_attractor == 1 && i == num_of_blocks
+           prototype(initial_nrn:final_nrn, 1:stop) = ones(ext_activation, stop);   
+        end
+    end
 end
