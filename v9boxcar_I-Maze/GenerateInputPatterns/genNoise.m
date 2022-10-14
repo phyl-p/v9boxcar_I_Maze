@@ -18,8 +18,8 @@ function sequence = genNoise(prototypes,on_noise,off_noise)
 
     len_train=size(prototypes,2);   %length of training
     sequence=prototypes;
-    disp("size of prototypes in gen noise")
-    disp(size(prototypes))
+    %disp("size of prototypes in gen noise")
+    %disp(size(prototypes))
   
     for t = 1:len_train
             %select firing pattern at time t
@@ -39,7 +39,7 @@ function sequence = genNoise(prototypes,on_noise,off_noise)
             noise_indices =  off_prob < off_noise & off_prob ~= 0;
             sequence(noise_indices,t) = 0;
     end
-    disp("sequence size in gen noise")
-    disp(size(sequence))
+    %disp("sequence size in gen noise")
+    %disp(size(sequence))
     
 end

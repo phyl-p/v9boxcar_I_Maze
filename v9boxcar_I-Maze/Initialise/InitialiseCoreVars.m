@@ -6,15 +6,15 @@ function vars = InitialiseCoreVars(params)
     if params.toggle_trace == true 
         vars.input_prototypes = genTrace(params);    % trace sequence
     elseif params.toggle_I_Maze == true
-        disp("InitialiseCoreVars -- genIMaze")
+        %disp("InitialiseCoreVars -- genIMaze")
         % input_pattern is not the same as input_protoype. Due to the
         % special nature of I-Maze, each trial's input prototype will have
         % to be determined separately.
         vars.input_pattern = genIMazePattern(params.paradigm);    % I-Maze pattern
         vars.input_prototypesL = genIMaze(params, 1);
         vars.input_prototypesR = genIMaze(params, 2);
-        disp("size after genIMaze")
-        disp(size(vars.input_prototypesR))
+        %disp("size after genIMaze")
+        %disp(size(vars.input_prototypesR))
     else    
         vars.input_prototypes = genSequence(params); %default is simple sequence
     end

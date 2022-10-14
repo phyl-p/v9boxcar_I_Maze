@@ -24,8 +24,8 @@ function [vars,data] = RunModel(param,vars,data)
 
     n_trials = param.number_of_trials;
     len_trial = param.length_of_each_trial;
-    disp("run model len trial")
-    disp(len_trial)
+    %disp("run model len trial")
+    %disp(len_trial)
     data.successful_learning = false;
     
     if param.toggle_trace == true && param.toggle_record_success == true % success data for trace conditioning
@@ -54,8 +54,8 @@ function [vars,data] = RunModel(param,vars,data)
                 disp("ERROR: incorrect input pattern generated. Must be either 1 or 2. Check genIMazePatten.")
             end
         end 
-        disp("size of input proto at start of trial")
-        disp(size(vars.input_prototypes))
+        %disp("size of input proto at start of trial")
+        %disp(size(vars.input_prototypes))
         [vars,data] = InitialiseTrial(param,vars,data);
 
         for timestep = 1:len_trial
@@ -195,8 +195,8 @@ function [vars,data] = InitialiseTrial(param,vars,data)
     if param.toggle_trace == true
          vars.input_current_trial = genNoiseTrace(vars.input_prototypes,param.on_noise,param.off_noise);%trace conditioning
     elseif param.toggle_I_Maze == true
-        disp("size prototypes in initrialise")
-        disp(size(vars.input_prototypes))
+        %disp("size prototypes in initrialise")
+        %disp(size(vars.input_prototypes))
          vars.input_current_trial = genNoise(vars.input_prototypes,param.on_noise,param.off_noise);%I-Maze genNoise
     else
         vars.input_current_trial = genNoise(vars.input_prototypes,param.on_noise,param.off_noise); %simple sequence
@@ -526,7 +526,7 @@ end
 
 
 function data = TestNetwork(params,vars,data,trial_number)
-    disp("in test network")
+    %disp("in test network")
     %make sure cv is not an output variable of the function
     [vars,~] = InitialiseTrial(params,vars,000); %the 000 is just a stub
 
@@ -549,7 +549,7 @@ function data = TestNetwork(params,vars,data,trial_number)
         if params.toggle_trace == true
             %vars.z = genNoiseTrace(vars.z,on_noise,off_noise); %apply noise to test trace sequence
         else
-            disp("gen noise for var.z")
+            %disp("gen noise for var.z")
             vars.z = genNoise(vars.z,on_noise,off_noise); %apply noise to test simple sequence
         end
         current_test(:,timestep) = vars.z;
