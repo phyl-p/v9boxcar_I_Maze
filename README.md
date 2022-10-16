@@ -6,4 +6,4 @@ This file also contains a trace conditioning model that co-exists wth the I-Maze
 The current version of this I-Maze does not have the necessary attractors implemented during either training or testing. The updates will be implemented today.
 
 Setting up parameters for simulation:
-Go to Initialise/InitialiseParameters.m
+Go to Initialise/InitialiseParameters.m, look through the parameters structure to see what you want to change about the either the hippocampal model or the behavioral training model.
