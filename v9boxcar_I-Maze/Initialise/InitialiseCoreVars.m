@@ -10,10 +10,10 @@ function vars = InitialiseCoreVars(params)
         % special nature of I-Maze, each trial's input prototype will have
         % to be determined separately.
         [vars.input_pattern, vars.input_attractor] = genIMazePattern(params.paradigm);    % I-Maze pattern
-        vars.input_prototypesL1 = genIMaze(params, 1, 1);
-        vars.input_prototypesR1 = genIMaze(params, 2, 1);
-        vars.input_prototypesL2 = genIMaze(params, 1, 2);
-        vars.input_prototypesR2 = genIMaze(params, 2, 2);
+        [vars.input_prototypesL1, vars.attractor_posL1] = genIMaze(params, 1, 1);
+        [vars.input_prototypesR1, vars.attractor_posR1] = genIMaze(params, 2, 1);
+        [vars.input_prototypesL2, vars.attractor_posL2] = genIMaze(params, 1, 2);
+        [vars.input_prototypesR2, vars.attractor_posR2] = genIMaze(params, 2, 2);
         %disp("size after genIMaze")
         %disp(size(vars.input_prototypesR))
     else    

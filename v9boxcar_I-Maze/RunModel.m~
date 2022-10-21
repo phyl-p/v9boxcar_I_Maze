@@ -22,7 +22,7 @@ function [vars,data] = RunModel(param,vars,data)
     
     rng(seed)
 
-    n_trials = 2*param.number_of_trials; %modify the multiplier 2 if only want to train on one attractor, have to also modify initilaiseCoreVar, genIMazePattern and rescaleparameters
+    n_trials = param.number_of_trials; %modify the multiplier 2 if only want to train on one attractor, have to also modify initilaiseCoreVar, genIMazePattern and rescaleparameters
     len_trial = param.length_of_each_trial;
     %disp("run model len trial")
     %disp(len_trial)
@@ -46,10 +46,18 @@ function [vars,data] = RunModel(param,vars,data)
         % initialize the input_prototype for this trial, as specified by
         % vars. input_pattern generated in InitialiseCoreVars.
         if param.toggle_I_Maze == true
-            if vars.input_pattern(1, trial_number) == 1 
-                vars.input_prototypes = vars.input_prototypesL;
-            elseif vars.input_pattern(1, trial_number) == 2
-                vars.input_prototypes = vars.input_prototypesR;
+            if vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 1
+                vars.input_prototypes = vars.input_prototypesL1;
+                vars.attractor_position = vars.attractor_positionL1;
+            elseif vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 2
+                vars.input_prototypes = vars.input_prototypesL2;
+                vars.attractor_position = vars.attractor_positionL2;
+            elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 1
+                vars.input_prototypes = vars.input_prototypesR1;    
+                vars.attractor_position = vars.attractor_positionR1;
+            elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 2
+                vars.input_prototypes = vars.input_prototypesR2;
+                vars.attractor_position = vars.attractor_positionL1;
             else
                 disp("ERROR: incorrect input pattern generated. Must be either 1 or 2. Check genIMazePatten.")
             end
@@ -535,7 +543,11 @@ function data = TestNetwork(params,vars,data,trial_number)
     
     on_noise = double(params.test_on_noise); 
     off_noise = double(params.test_off_noise);
-    first_stimulus_no_noise = vars.input_prototypes(:,1:params.first_stimulus_length); %makes the external test activation noisy
+    %make sure the attractor is on for the entire duration of the stimuli
+    attractor_beg = vars.attractor_position(1, 1);
+    attractor_end = vars.attractor_position
+    first_stimulus_no_noise = vars.input_prototypes(:,1:params.first_stimulus_length);
+    first_stimulus_no_noise()%makes the external test activation noisy
     first_stimulus = genNoise(first_stimulus_no_noise, on_noise, off_noise);
     
     vars.input_current_trial = zeros(n_nrns,len_trial,'logical');
@@ -559,6 +571,7 @@ function data = TestNetwork(params,vars,data,trial_number)
     if params.toggle_figures ==  true
         subplot(1,2,2)
         SpySelected(current_test,params.nrn_viewing_range)
+        %xline = () 
     end
     
     if params.toggle_record_success == true && params.toggle_trace == true %trace : display success lines

@@ -48,12 +48,16 @@ function [vars,data] = RunModel(param,vars,data)
         if param.toggle_I_Maze == true
             if vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 1
                 vars.input_prototypes = vars.input_prototypesL1;
+                vars.attractor_position = vars.attractor_posL1;
             elseif vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 2
                 vars.input_prototypes = vars.input_prototypesL2;
+                vars.attractor_position = vars.attractor_posL2;
             elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 1
                 vars.input_prototypes = vars.input_prototypesR1;    
+                vars.attractor_position = vars.attractor_posR1;
             elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 2
-                vars.input_prototypes = vars.input_prototypesR2;   
+                vars.input_prototypes = vars.input_prototypesR2;
+                vars.attractor_position = vars.attractor_posR2;
             else
                 disp("ERROR: incorrect input pattern generated. Must be either 1 or 2. Check genIMazePatten.")
             end
@@ -539,12 +543,18 @@ function data = TestNetwork(params,vars,data,trial_number)
     
     on_noise = double(params.test_on_noise); 
     off_noise = double(params.test_off_noise);
-    first_stimulus_no_noise = vars.input_prototypes(:,1:params.first_stimulus_length); %makes the external test activation noisy
-    first_stimulus = genNoise(first_stimulus_no_noise, on_noise, off_noise);
+    %make sure the attractor is on for the entire duration of the stimuli
+    attractor_beg = vars.attractor_position(1, 1);
+    attractor_end = vars.attractor_position(1, 2);
+    
+    test_stimulus_no_noise = zeros(size(vars.input_prototypes, 1), len_trial);
+    test_stimulus_no_noise(1:size(vars.input_prototypes, 1), 1:params.first_stimulus_length) = vars.input_prototypes(:,1:params.first_stimulus_length);
+    test_stimulus_no_noise(attractor_beg:attractor_end, :) = ones(params.ext_activation, len_trial);%makes the external test activation noisy
+    test_stimulus = genNoise(test_stimulus_no_noise, on_noise, off_noise);
     
     vars.input_current_trial = zeros(n_nrns,len_trial,'logical');
 %     vars.input_current_trial = zeros(size(vars.input_current_trial),'logical');
-    vars.input_current_trial(:,1:params.first_stimulus_length) = first_stimulus;
+    vars.input_current_trial(:,:) = test_stimulus;
   
     current_test = zeros(n_nrns,len_trial,'logical');
 
@@ -563,6 +573,7 @@ function data = TestNetwork(params,vars,data,trial_number)
     if params.toggle_figures ==  true
         subplot(1,2,2)
         SpySelected(current_test,params.nrn_viewing_range)
+        %xline = () 
     end
     
     if params.toggle_record_success == true && params.toggle_trace == true %trace : display success lines
