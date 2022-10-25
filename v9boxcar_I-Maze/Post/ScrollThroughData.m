@@ -119,11 +119,11 @@ end
 
 function StandardDisplay(parameters,data,trial)
     subplot(2,3,[1,4])
-    spy(data.z_train(:,:,trial))
+    spy(data.z_train(1:parameters.nrn_viewing_range,:,trial))
     title(['training'])
     
     subplot(2,3,[2,5])
-    spy(data.z_test(:,:,trial))
+    spy(data.z_test(1:parameters.nrn_viewing_range,:,trial))
     title(['testing'])
     
     subplot(2,3,3)
@@ -144,8 +144,8 @@ function StandardDisplay(parameters,data,trial)
 end
 
 function ReorderDisplay(data,trial)
-    z_train = data.z_train(:,:,trial);
-    z_test  = data.z_test(:,:,trial);
+    z_train = data.z_train(1:parameters.nrn_viewing_range,:,trial);
+    z_test  = data.z_test(1:parameters.nrn_viewing_range,:,trial);
     [z_train_reordered,i_reorder] = reorder(z_train);
     subplot(1,2,1)
     spy(z_train_reordered)
@@ -155,11 +155,11 @@ end
 
 function CombinedDisplay(parameters,data,trial)
     subplot(2,5,[1,6])
-    spy(data.z_train(1:80,:,trial)) %spy(data.z_train(:,:,trial))
+    spy(data.z_train(1:parameters.nrn_viewing_range(1, 2),:,trial)) %spy(data.z_train(:,:,trial))
     title('training')
     
     subplot(2,5,[2,7])
-    spy(data.z_test(1:80,:,trial)) %spy(data.z_test(:,:,trial))
+    spy(data.z_test(1:parameters.nrn_viewing_range(1, 2),:,trial)) %spy(data.z_test(:,:,trial))
     title('testing')
     
     %%% trace viewing helpers for testing plot %%%

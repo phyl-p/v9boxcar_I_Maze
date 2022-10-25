@@ -46,7 +46,7 @@ a_struct =
   struct with fields:
 
     a_scalar: 3.1416
-    a_matrix: [2×2 double]
+    a_matrix: [2ï¿½2 double]
 
 >> b_struct = struct;
 >> b_struct.b_subfield1 = 2.7183;
@@ -58,8 +58,8 @@ a_struct =
   struct with fields:
 
     a_scalar: 3.1416
-    a_matrix: [2×2 double]
-     a_field: [1×1 struct]
+    a_matrix: [2ï¿½2 double]
+     a_field: [1ï¿½1 struct]
 >> a_struct.a_field
 ans = 
 
@@ -119,7 +119,6 @@ disp(['seed 1 = ',num2str(seed)])
 rng(seed)
 
 retrieve_k = false;
-parameters.nrn_viewing_range = [1,750];%must be less than number of neurons; default 700
 
 [parameters,variables,data] = Initialise_PresetBoxcar(parameters,retrieve_k);
 %parameters.epsilon_k_0 = 0;

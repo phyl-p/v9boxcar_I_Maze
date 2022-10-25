@@ -1,5 +1,5 @@
 
-function vars = InitialiseCoreVars(params)
+function [vars,params] = InitialiseCoreVars(params)
     %generate input prototypes (trace sequence,I_Maze or simple sequence);
     %all inputs in the simulation will be noisy versions of the following prototype:
     if params.toggle_trace == true 
@@ -14,6 +14,7 @@ function vars = InitialiseCoreVars(params)
         [vars.input_prototypesR1, vars.attractor_posR1] = genIMaze(params, 2, 1);
         [vars.input_prototypesL2, vars.attractor_posL2] = genIMaze(params, 1, 2);
         [vars.input_prototypesR2, vars.attractor_posR2] = genIMaze(params, 2, 2);
+        params.nrn_viewing_range = [1, vars.attractor_posR2(1,2)+30];
         %disp("size after genIMaze")
         %disp(size(vars.input_prototypesR))
     else    

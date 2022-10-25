@@ -4,7 +4,7 @@ function [parameters,variables,data] = Initialise_PresetBoxcar(parameters,retrie
 %     parameters.pre_then_post_offset = timescale;  %only affects the number of columns of z_prev which in turn changes the z_nmda term to z_nmda(t-nmdatimeshift)
     %%%%%%%%%%%%%%%%%%%%%%
 
-    variables = InitialiseCoreVars(parameters);
+    [variables, parameters] = InitialiseCoreVars(parameters);
     %NOTE: kff,k0 and kfb are not rescaled;
     %{
     InitialiseCoreVars already transfers kff,k0 and kfb from params to vars

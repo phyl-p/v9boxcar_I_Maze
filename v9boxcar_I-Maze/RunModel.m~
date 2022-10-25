@@ -48,16 +48,16 @@ function [vars,data] = RunModel(param,vars,data)
         if param.toggle_I_Maze == true
             if vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 1
                 vars.input_prototypes = vars.input_prototypesL1;
-                vars.attractor_position = vars.attractor_positionL1;
+                vars.attractor_position = vars.attractor_posL1;
             elseif vars.input_pattern(1, trial_number) == 1 && vars.input_attractor(1, trial_number) == 2
                 vars.input_prototypes = vars.input_prototypesL2;
-                vars.attractor_position = vars.attractor_positionL2;
+                vars.attractor_position = vars.attractor_posL2;
             elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 1
                 vars.input_prototypes = vars.input_prototypesR1;    
-                vars.attractor_position = vars.attractor_positionR1;
+                vars.attractor_position = vars.attractor_posR1;
             elseif vars.input_pattern(1, trial_number) == 2 && vars.input_attractor(1, trial_number) == 2
                 vars.input_prototypes = vars.input_prototypesR2;
-                vars.attractor_position = vars.attractor_positionL1;
+                vars.attractor_position = vars.attractor_posR2;
             else
                 disp("ERROR: incorrect input pattern generated. Must be either 1 or 2. Check genIMazePatten.")
             end
@@ -100,7 +100,14 @@ function [vars,data] = RunModel(param,vars,data)
 
         % Simple sequence success
         if param.toggle_record_success == true && param.toggle_trace == false
-            current_trial_success = DetermineTrialSuccess(param,vars,data,trial_number);
+            if param.toggle_I_Maze == true
+               current_trial_success = DetermineTrialSuccessIMaze(param,vars,data,trial_number);
+            else
+               current_trial_success = DetermineTrialSuccess(param,vars,data,trial_number);
+
+            end
+            disp("result in runmodel")
+            disp(current_trial_success)
             [data,n_consec_successes] =...
                 RecordSuccess(param,data,current_trial_success,n_consec_successes,trial_number);
 
@@ -161,7 +168,10 @@ function [vars,data] = RunModel(param,vars,data)
         
     end
     
-
+    if param.toggle_I_Maze == true
+        vars.I_Maze_test_data = testIMaze(param,vars,data);
+    end
+    
     if true
         pause(0.0000000000000001)       
     end
@@ -504,8 +514,16 @@ function data = RecordTrial(params,vars,data,trial_number)
     end
     %spy(current_trial)
     if params.toggle_figures == true
-        subplot(1,2,1)
+        subplot(2,5,[1,6])
         SpySelected(current_trial,params.nrn_viewing_range)
+        
+        subplot(2,5,3)
+        plot(mean(data.z_train(:,:,trial_number),1))
+        ylim([0,params.desired_mean_z*2])
+        line([0,params.length_of_each_trial],...
+            repmat(params.desired_mean_z,[1,2]),'Color','red')
+        xlim([0,params.length_of_each_trial])
+        title({'training trial mean activity,', 'with desired activity in red'})
     end
     title(['training trial ', num2str(trial_number)])
     xlabel(['training mean z = ', num2str(vars.mean_z_current_trial)])
@@ -545,14 +563,16 @@ function data = TestNetwork(params,vars,data,trial_number)
     off_noise = double(params.test_off_noise);
     %make sure the attractor is on for the entire duration of the stimuli
     attractor_beg = vars.attractor_position(1, 1);
-    attractor_end = vars.attractor_position
-    first_stimulus_no_noise = vars.input_prototypes(:,1:params.first_stimulus_length);
-    first_stimulus_no_noise()%makes the external test activation noisy
-    first_stimulus = genNoise(first_stimulus_no_noise, on_noise, off_noise);
+    attractor_end = vars.attractor_position(1, 2);
+    
+    test_stimulus_no_noise = zeros(size(vars.input_prototypes, 1), len_trial);
+    test_stimulus_no_noise(1:size(vars.input_prototypes, 1), 1:params.first_stimulus_length) = vars.input_prototypes(:,1:params.first_stimulus_length);
+    test_stimulus_no_noise(attractor_beg:attractor_end, :) = ones(params.attr_percent_ext_nrns*params.ext_activation, len_trial);%makes the external test activation noisy
+    test_stimulus = genNoise(test_stimulus_no_noise, on_noise, off_noise);
     
     vars.input_current_trial = zeros(n_nrns,len_trial,'logical');
 %     vars.input_current_trial = zeros(size(vars.input_current_trial),'logical');
-    vars.input_current_trial(:,1:params.first_stimulus_length) = first_stimulus;
+    vars.input_current_trial(:,:) = test_stimulus;
   
     current_test = zeros(n_nrns,len_trial,'logical');
 
@@ -569,9 +589,16 @@ function data = TestNetwork(params,vars,data,trial_number)
 
     %spy(current_test)
     if params.toggle_figures ==  true
-        subplot(1,2,2)
+        subplot(2,5,[2,7])
         SpySelected(current_test,params.nrn_viewing_range)
         %xline = () 
+        subplot(2,5,8)
+        plot(mean(data.z_test(:,:,trial_number),1))
+        ylim([0,parameters.desired_mean_z*2])
+        line([0,parameters.length_of_each_trial],...
+            repmat(parameters.desired_mean_z,[1,2]),'Color','red')
+        xlim([0,parameters.length_of_each_trial])
+        title({'testing trial mean activity,', 'with desired activity in red'})
     end
     
     if params.toggle_record_success == true && params.toggle_trace == true %trace : display success lines
@@ -615,3 +642,97 @@ function [data, n_consec_successes] = RecordSuccessTrace(params,data,trace_resul
     success_code = 1;
     n_consec_successes = (n_consec_successes+(trace_result_code == success_code))*(trace_result_code>0);
 end    
+
+function success_rate = testIMaze(params,vars,data)
+    data.final_test_vect = [];
+    success_count = 0;
+    for pattern = 1:params.num_test_pattern
+        %determine input prototype & attractor
+        if pattern == 1
+            vars.input_prototypes = vars.input_prototypesL1;
+            vars.attractor_position = vars.attractor_posL1;
+            tite_name = "testing L1";
+        elseif pattern == 2
+            vars.input_prototypes = vars.input_prototypesL2;
+            vars.attractor_position = vars.attractor_posL2;
+            tite_name = "testing L2";
+        elseif pattern == 3
+            vars.input_prototypes = vars.input_prototypesR1;
+            vars.attractor_position = vars.attractor_posR1;
+            tite_name = "testing R1";
+        elseif pattern == 4
+            vars.input_prototypes = vars.input_prototypesR2;
+            vars.attractor_position = vars.attractor_posR1;
+            tite_name = "testing R2";
+        end
+        for rep = 1:params.test_reps_for_each_pattern
+            %make sure cv is not an output variable of the function
+            [vars,~] = InitialiseTrial(params,vars,000); %the 000 is just a stub
+
+            len_trial = params.test_length_of_each_trial;
+            n_nrns    = params.number_of_neurons;
+
+            on_noise = double(params.test_on_noise); 
+            off_noise = double(params.test_off_noise);
+            %make sure the attractor is on for the entire duration of the stimuli
+            attractor_beg = vars.attractor_position(1, 1);
+            attractor_end = vars.attractor_position(1, 2);
+
+            test_stimulus_no_noise = zeros(size(vars.input_prototypes, 1), len_trial);
+            test_stimulus_no_noise(1:size(vars.input_prototypes, 1), 1:params.first_stimulus_length) = vars.input_prototypes(:,1:params.first_stimulus_length);
+            test_stimulus_no_noise(attractor_beg:attractor_end, :) = ones(params.attr_percent_ext_nrns*params.ext_activation, len_trial);%makes the external test activation noisy
+            test_stimulus = genNoise(test_stimulus_no_noise, on_noise, off_noise);
+
+            vars.input_current_trial = zeros(n_nrns,len_trial,'logical');
+            vars.input_current_trial = zeros(size(vars.input_current_trial),'logical');
+            vars.input_current_trial(:,:) = test_stimulus;
+
+            current_test = zeros(n_nrns,len_trial,'logical');
+
+            for timestep = 1:len_trial
+                vars = UpdateSpike(params,vars,timestep);      
+                if params.toggle_trace == true
+                    vars.z = genNoiseTrace(vars.z,on_noise,off_noise); %apply noise to test trace sequence
+                else
+                    %disp("gen noise for var.z")
+                    vars.z = genNoise(vars.z,on_noise,off_noise); %apply noise to test simple sequence
+                end
+                current_test(:,timestep) = vars.z;
+            end
+
+            %spy(current_test)
+            if params.toggle_figures ==  true
+                subplot(2,5,[2,7])
+                SpySelected(current_test,params.nrn_viewing_range)
+                
+                subplot(2,5,8)
+                plot(mean(data.final_test_vect(:,:,),1))
+                ylim([0,parameters.desired_mean_z*2])
+                line([0,parameters.length_of_each_trial],...
+                    repmat(parameters.desired_mean_z,[1,2]),'Color','red')
+                xlim([0,parameters.length_of_each_trial])
+                title({'testing trial mean activity,', 'with desired activity in red'})
+            end
+            
+            current_trial_success = DetermineTrialSuccessIMaze(params,vars,data,rep);
+            disp("current_trial_success")
+            disp(current_trial_success)
+            %if strcmp(current_trial_success, 'success')
+            data.final_test_vect = [data.final_test_vect current_trial_success];
+            title({[tite_name],['test using weights from rep ',num2str(rep), ],...
+                    ['mean',num2str(mean(mean(current_test)))], ['result:', num2str(current_trial_success)]})    
+            pause(0.00000000000001)
+            data.z_test_last_trial = current_test;
+            data.mean_z_test_last_trial = mean(current_test)';
+%             if params.toggle_record_z_final_tests == true
+%                 data.z_final_test(:,:,trial_number) = current_test;
+%             end
+            if current_trial_success == 10
+                success_count = success_count + 1;
+            end
+           
+        end
+    end
+     disp("success_rate")
+     success_rate = success_count/(params.num_test_pattern * params.test_reps_for_each_pattern)
+end

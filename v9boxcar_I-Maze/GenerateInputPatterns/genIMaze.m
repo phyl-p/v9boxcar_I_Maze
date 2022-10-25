@@ -68,13 +68,13 @@ function [input_sequence, attractor_position] = genIMaze(pm, pattern, attractor)
     num_start_block = pm.num_start_block;
     num_shared_block = pm.num_shared_block;
     num_end_block = pm.num_end_block;
-    
+    attr_percent_ext_nrns = pm.attr_percent_ext_nrns;
     extra_steps = pm.extra_timesteps_train;
     toggle_produce_visualisation_of_input = pm.toggle_visualize_IMaze;
     toggle_save_input_sequence_to_file = pm.toggle_save_input_sequence_to_file;
     
     [input_sequence, attractor_position] = genPrototypes(pattern, attractor, n_nrns, ext_activation, ...
-        stutter, shift,num_start_block, num_shared_block, num_end_block);
+        stutter, shift,num_start_block, num_shared_block, num_end_block,attr_percent_ext_nrns);
     
     if extra_steps > 0
         % padding of zeros at the end
@@ -87,6 +87,7 @@ function [input_sequence, attractor_position] = genIMaze(pm, pattern, attractor)
      if toggle_produce_visualisation_of_input == true
         figure
         spy(input_sequence)
+        set(gca, 'PlotBoxAspectRatio', [1 5 1])
      end
      
     %-------------------------------
@@ -99,7 +100,7 @@ function [input_sequence, attractor_position] = genIMaze(pm, pattern, attractor)
 end
 
 function [prototypes, attractor_position] = genPrototypes(pattern, attractor, n_nrns, ext_activation, stutter,...
-                                    shift,num_start_block, num_shared_block, num_end_block)
+                                    shift,num_start_block, num_shared_block, num_end_block, attr_percent_ext_nrns)
 %GENPROTOTYPES: This function does the main implementation of the trace
 %conditioning sequence. It is called by genIMaze.  
     
@@ -138,7 +139,7 @@ function [prototypes, attractor_position] = genPrototypes(pattern, attractor, n_
     else
         nrn_padding_end = num_start_block*2 + num_shared_block + num_end_block;
     end
-            
+    
     nrn_padding_shared = num_start_block*2;
     
     timestp_padding_start = 0;
@@ -150,31 +151,29 @@ function [prototypes, attractor_position] = genPrototypes(pattern, attractor, n_
     %disp("build start")
     add_attractor = 0;
     [prototypes, ~] = buildPrototypes(prototype, add_attractor, block_unit, num_start_block, ...
-                                nrn_padding_start, timestp_padding_start,...
-                                shift, stutter, ext_activation);
+                                nrn_padding_start, timestp_padding_start, shift, stutter, ext_activation, attr_percent_ext_nrns);
     
-    % insert shared sequence
+    % insert **shared** sequence
     %disp("build shared")
     add_attractor = 0;
     [prototypes, ~] = buildPrototypes(prototypes, add_attractor, block_unit, num_shared_block, ...
-                                nrn_padding_shared, timestp_padding_shared,...
-                                shift, stutter, ext_activation);
+                                nrn_padding_shared, timestp_padding_shared, shift, stutter, ext_activation, attr_percent_ext_nrns);
     
-    % insert end sequence
+    % insert ***end*** sequence
     %disp("build end")
     add_attractor = 1;
     [prototypes, attractor_position] = buildPrototypes(prototypes, add_attractor, block_unit, num_end_block, ...
-                                nrn_padding_end, timestp_padding_end,...
-                                shift, stutter, ext_activation);
+                                nrn_padding_end, timestp_padding_end, shift, stutter, ext_activation, attr_percent_ext_nrns);
 end
 
 function [prototype, attractor_position] = buildPrototypes(prototype, add_attractor, block_unit, num_of_blocks, ...
-                                padding, time_padding, shift, stutter, ext_activation)
+                                padding, time_padding, shift, stutter, ext_activation, attr_percent_ext_nrns)
     %disp(" in buildPrototypes")
     
     initial_nrn = 1 + padding*ext_activation;
     ts_padding = time_padding*stutter;
-    
+    attractor_position = [];
+
     for i = 1:num_of_blocks
         % this for loop builds the sequence
         % x-axis (start:stop) is the duration of external input neurons firing
@@ -194,10 +193,9 @@ function [prototype, attractor_position] = buildPrototypes(prototype, add_attrac
 %         disp(stop)
 %         disp("------")
         prototype(initial_nrn:final_nrn, start:stop) = block_unit;   
-        attractor_position = [];
         if add_attractor == 1 && i == num_of_blocks
-           prototype(initial_nrn:final_nrn, 1:stop) = ones(ext_activation, stop);
-           attractor_position = [initial_nrn, final_nrn];
+           prototype(initial_nrn+0.7*ext_activation:final_nrn, 1:stop) = ones(attr_percent_ext_nrns*ext_activation, stop);
+           attractor_position = [initial_nrn + (1-attr_percent_ext_nrns)*ext_activation, final_nrn];
         end
     end
 end

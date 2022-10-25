@@ -92,12 +92,15 @@ function result_code = DetermineTrialSuccess(parameters,variables,data,trial)
     %past.
     state_vect          = zeros(n_pat,1);
     decay_vect          = state_vect;
-
+    disp("size of state vec")
+    disp(size(state_vect))
     state_vect(1) = timescale+1;
 
 
     for t = 1:len_trial
         %state_update_vect(2:end) = filter(1:end-1,t) .* (state_vect(1:end-1)>0);
+        disp("determine trial succ")
+        disp(state_vect+[0;state_vect(1:end-1)])
         state_update_vect = (filter(:,t) .* (state_vect+[0;state_vect(1:end-1)]))>0;
         decay_vect(state_vect>1) = state_vect(state_vect>1)-1;
         state_vect = (timescale+1)*state_update_vect+(state_update_vect==0).*decay_vect;
