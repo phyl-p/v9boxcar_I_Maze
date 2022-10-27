@@ -157,11 +157,12 @@ function CombinedDisplay(parameters,data,trial)
     subplot(2,5,[1,6])
     spy(data.z_train(1:parameters.nrn_viewing_range(1, 2),:,trial)) %spy(data.z_train(:,:,trial))
     title('training')
+    set(gca, 'PlotBoxAspectRatio', [1 5 1])
     
     subplot(2,5,[2,7])
     spy(data.z_test(1:parameters.nrn_viewing_range(1, 2),:,trial)) %spy(data.z_test(:,:,trial))
     title('testing')
-    
+    set(gca, 'PlotBoxAspectRatio', [1 5 1])
     %%% trace viewing helpers for testing plot %%%
     global success_timestep_1;
     global success_timestep_2;
@@ -198,9 +199,11 @@ function CombinedDisplay(parameters,data,trial)
     [z_train_reordered,i_reorder] = reorder(z_train);
     subplot(2,5,[4,9])
     spy(z_train_reordered)
+    set(gca, 'PlotBoxAspectRatio', [1 5 1])
+    
     subplot(2,5,[5,10])
     spy(z_test(i_reorder,:))
-    
+    set(gca, 'PlotBoxAspectRatio', [1 5 1])
 %     set(gcf,'position',[237,216,897,501])
 end
 

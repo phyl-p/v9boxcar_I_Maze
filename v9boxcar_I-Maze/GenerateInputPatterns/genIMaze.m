@@ -170,7 +170,7 @@ function [prototype, attractor_position] = buildPrototypes(prototype, add_attrac
                                 padding, time_padding, shift, stutter, ext_activation, attr_percent_ext_nrns)
     %disp(" in buildPrototypes")
     
-    initial_nrn = 1 + padding*ext_activation;
+    initial_nrn = 1 + padding*ext_activation-(padding)*shift;
     ts_padding = time_padding*stutter;
     attractor_position = [];
 

@@ -169,7 +169,7 @@ function [vars,data] = RunModel(param,vars,data)
     end
     
     if param.toggle_I_Maze == true
-        vars.I_Maze_test_data = testIMaze(param,vars,data);
+        [vars.I_Maze_test_data, data] = testIMaze(param,vars,data);
     end
     
     if true
@@ -517,6 +517,8 @@ function data = RecordTrial(params,vars,data,trial_number)
         subplot(2,5,[1,6])
         SpySelected(current_trial,params.nrn_viewing_range)
         title('training')
+        set(gca, 'PlotBoxAspectRatio', [1 5 1])
+        
         subplot(2,5,3)
         plot(mean(current_trial,1))
         ylim([0,params.desired_mean_z*2])
@@ -524,6 +526,12 @@ function data = RecordTrial(params,vars,data,trial_number)
             repmat(params.desired_mean_z,[1,2]),'Color','red')
         xlim([0,params.length_of_each_trial])
         title({'training trial mean activity,', 'with desired activity in red'})
+        
+        %spy context neurons
+        subplot(2,5,[4,9])
+        spy(current_trial(params.nrn_viewing_range(1, 2)+1:end,:))
+        set(gca, 'PlotBoxAspectRatio', [1 5 1])
+        title('training context nrns')
     end
     title(['training trial ', num2str(trial_number)])
     xlabel(['training mean z = ', num2str(vars.mean_z_current_trial)])
@@ -592,6 +600,7 @@ function data = TestNetwork(params,vars,data,trial_number)
         subplot(2,5,[2,7])
         SpySelected(current_test,params.nrn_viewing_range)
         title('testing')
+        set(gca, 'PlotBoxAspectRatio', [1 5 1])
         
         subplot(2,5,8)
         plot(mean(current_test,1))
@@ -600,6 +609,12 @@ function data = TestNetwork(params,vars,data,trial_number)
             repmat(params.desired_mean_z,[1,2]),'Color','red')
         xlim([0,params.length_of_each_trial])
         title({'testing trial mean activity,', 'with desired activity in red'})
+        
+        %spy context neurons
+        subplot(2,5,[5,10])
+        spy(current_test(params.nrn_viewing_range(1, 2)+1:end,:))
+        set(gca, 'PlotBoxAspectRatio', [1 5 1])
+        title('testing context nrns')
     end
     
     if params.toggle_record_success == true && params.toggle_trace == true %trace : display success lines
@@ -644,8 +659,9 @@ function [data, n_consec_successes] = RecordSuccessTrace(params,data,trace_resul
     n_consec_successes = (n_consec_successes+(trace_result_code == success_code))*(trace_result_code>0);
 end    
 
-function success_rate = testIMaze(params,vars,data)
+function [success_rate, data] = testIMaze(params,vars,data)
     data.final_test_vect = [];
+    data.final_test = [];
     success_count = 0;
     for pattern = 1:params.num_test_pattern
         %determine input prototype & attractor
@@ -706,6 +722,8 @@ function success_rate = testIMaze(params,vars,data)
                 subplot(2,5,[2,7])
                 SpySelected(current_test,params.nrn_viewing_range)
                 title('FINAL TESTING')
+                set(gca, 'PlotBoxAspectRatio', [1 5 1])
+                
                 subplot(2,5,8)
                 plot(mean(current_test,1))
                 ylim([0,params.desired_mean_z*2])
@@ -713,6 +731,12 @@ function success_rate = testIMaze(params,vars,data)
                     repmat(params.desired_mean_z,[1,2]),'Color','red')
                 xlim([0,params.length_of_each_trial])
                 title({'testing trial mean activity,', 'with desired activity in red'})
+                
+                %spy context neurons
+                subplot(2,5,[5,10])
+                spy(current_test(params.nrn_viewing_range(1, 2)+1:end,:))
+                set(gca, 'PlotBoxAspectRatio', [1 5 1])
+                title('FINAL TESTING context nrns')
             end
             
             current_trial_success = DetermineTrialSuccessIMaze(params,vars,data,rep);
@@ -720,6 +744,7 @@ function success_rate = testIMaze(params,vars,data)
             disp(current_trial_success)
             %if strcmp(current_trial_success, 'success')
             data.final_test_vect = [data.final_test_vect current_trial_success];
+            data.final_test = [data.final_test current_test];
             title({[tite_name],['test using weights from rep ',num2str(rep), ],...
                     ['mean',num2str(mean(mean(current_test)))], ['result:', num2str(current_trial_success)]})    
             pause(0.00000000000001)
